@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pelanggan - Fadel Store Admin</title>
+  <style>
+    body { background: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .header { background: #1a1a1a; padding: 20px 30px; border-bottom: 3px solid #00ffff; display: flex; justify-content: space-between; align-items: center; }
+    .logo { color: #00ffff; font-size: 1.8em; font-weight: bold; }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .logout { color: #ff4444; text-decoration: none; font-weight: bold; }
+    .sidebar { width: 260px; background: #1a1a1a; position: fixed; top: 0; left: 0; bottom: 0; padding-top: 100px; border-right: 1px solid #333; }
+    .sidebar a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #222; transition: all 0.3s; }
+    .sidebar a:hover, .sidebar a.active { background: #00ffff; color: #000; font-weight: bold; }
+    .main { margin-left: 260px; padding: 30px; }
+    h1 { font-size: 2.2em; color: #00ffff; margin-bottom: 20px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
+    th { background: #1c1c1e; color: #00ffff; font-weight: bold; }
+    tr:hover { background: rgba(0,255,255,0.05); }
+    .total-spent { color: #2ecc71; font-weight: bold; }
+    .new-customer { background: rgba(0,255,255,0.1); border-left: 5px solid #00ffff; animation: glow 2s infinite; }
+    @keyframes glow { 0%,100% { box-shadow: 0 0 15px rgba(0,255,255,0.4); } 50% { box-shadow: 0 0 30px rgba(0,255,255,0.8); } }
+    .empty { text-align: center; padding: 60px; color: #888; font-size: 1.4em; }
+    
+    /* Tombol Aksi */
+    .action-btn {
+      padding: 8px 14px; margin: 0 4px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9em;
+    }
+    .btn-edit { background: #ff9800; color: #000; }
+    .btn-delete { background: #ff4444; color: #fff; }
+    .btn-edit:hover { background: #ffb74d; }
+    .btn-delete:hover { background: #ff6b6b; }
+
+    @media (max-width: 992px) { .sidebar { position: relative; width: 100%; padding-top: 0; } .main { margin-left: 0; margin-top: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="konfirmasi-pembayaran.html">Konfirmasi Pembayaran</a>
+    <a href="customer.html" class="active">Pelanggan</a>
+    <a href="produk.html">Produk</a>
+    <a href="../index.html">Lihat Toko</a>
+    <a href="#" id="logout-btn" style="margin-top: 50px; color: #ff4444;">Logout</a>
+  </div>
+  <div class="header">
+    <div class="logo">Fadel Store Admin</div>
+    <div class="user-info">
+      <span>Selamat datang, Admin</span>
+      <a href="#" id="logout-top" class="logout">Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <h1>Daftar Pelanggan</h1>
+    <p style="color:#888; margin-bottom:30px;">Data otomatis dari setiap order yang dikonfirmasi</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Pelanggan</th>
+          <th>No. WhatsApp</th>
+          <th>Total Belanja</th>
+          <th>Jumlah Order</th>
+          <th>Pesanan Terakhir</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="customerTableBody">
+        <tr><td colspan="7" class="empty">Loading data pelanggan...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function formatRupiah(number) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    // Ambil semua order yang sudah dikonfirmasi
+    function getConfirmedOrders() {
+      return JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+    }
+
+    // Hitung data pelanggan dari order
+    function calculateCustomerData() {
+      const orders = getConfirmedOrders();
+      const customers = {};
+
+      orders.forEach(order => {
+        const nama = order.nama.trim();
+        const nohp = order.nohp;
+        const total = parseInt(order.total.replace(/[^\d]/g, ''));
+        const waktu = order.waktu;
+
+        if (!customers[nama]) {
+          customers[nama] = { nama, nohp, total: 0, count: 0, lastOrder: waktu };
+        }
+        customers[nama].total += total;
+        customers[nama].count += 1;
+        if (new Date(waktu) > new Date(customers[nama].lastOrder)) {
+          customers[nama].lastOrder = waktu;
+        }
+      });
+
+      // Urutkan dari total belanja terbesar
+      return Object.values(customers).sort((a, b) => b.total - a.total);
+    }
+
+    // Update tabel pelanggan
+    function loadCustomers() {
+      const customers = calculateCustomerData();
+      const tbody = document.getElementById('customerTableBody');
+
+      if (customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Belum ada pelanggan yang sudah dikonfirmasi</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = customers.map((c, i) => {
+        const isNew = i === 0 && customers.length > 0;
+        return `
+          <tr class="${isNew ? 'new-customer' : ''}">
+            <td>${i + 1}</td>
+            <td><strong>${c.nama}</strong></td>
+            <td>+62${c.nohp}</td>
+            <td class="total-spent">${formatRupiah(c.total)}</td>
+            <td>${c.count} order</td>
+            <td>${c.lastOrder}</td>
+            <td>
+              <button class="action-btn btn-edit" onclick="editCustomer('${c.nama}')">Edit</button>
+              <button class="action-btn btn-delete" onclick="deleteCustomer('${c.nama}')">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Edit Pelanggan
+    function editCustomer(nama) {
+      const newNama = prompt('Edit Nama:', nama);
+      const newWA = prompt('Edit No. WhatsApp (+62895...):', '');
+      if (!newNama || !newWA) return;
+
+      let orders = getConfirmedOrders();
+      orders.forEach(o => {
+        if (o.nama.trim() === nama) {
+          o.nama = newNama.trim();
+          o.nohp = newWA.replace(/[^\d]/g, '');
+        }
+      });
+      localStorage.setItem('admin_confirmed_orders', JSON.stringify(orders));
+      alert('Data pelanggan berhasil diupdate!');
+      loadCustomers();
+    }
+
+    // Hapus Pelanggan
+    function deleteCustomer(nama) {
+      if (confirm(`Hapus semua data "${nama}" dari sistem?`)) {
+        let orders = getConfirmedOrders();
+        orders = orders.filter(o => o.nama.trim() !== nama);
+        localStorage.setItem('admin_confirmed_orders', JSON.stringify(orders));
+        alert('Pelanggan berhasil dihapus!');
+        loadCustomers();
+      }
+    }
+
+    // Real-time update tiap 5 detik
+    setInterval(loadCustomers, 5000);
+
+    window.onload = function() {
+      if (!localStorage.getItem('admin_logged_in')) {
+        window.location.href = 'index_Admin.html';
+        return;
+      }
+      loadCustomers();
+
+      document.querySelectorAll('#logout-btn, #logout-top').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          localStorage.removeItem('admin_logged_in');
+          window.location.href = 'index_Admin.html';
+        });
+      });
+    };
+  </script>
+</body>
+</html>

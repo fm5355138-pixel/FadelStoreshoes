@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pembayaran - Fadel Store</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #0d0d0d; 
+            color: #ffffff; 
+            margin: 0; 
+            padding: 15px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            padding-bottom: 100px;
+        }
+        h2 { 
+            text-align: center; 
+            color: #fff; 
+            font-size: 1.2em; 
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        .amount-box {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+        .amount {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2ecc71;
+            letter-spacing: -1px;
+        }
+        .copy-hint {
+            font-size: 0.8em;
+            color: #666;
+            background: #252525;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .section-label {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            margin-top: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            padding-left: 5px;
+        }
+        .payment-item {
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            transition: background 0.2s, transform 0.2s;
+            border: 1px solid #333;
+            cursor: pointer;
+        }
+        .payment-item:active {
+            background-color: #333;
+            transform: scale(0.98);
+        }
+        .logo-wrapper {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .logo-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+        .info { flex: 1; overflow: hidden; }
+        .name { font-size: 0.95em; font-weight: bold; color: #fff; margin-bottom: 3px; }
+        .number { font-family: monospace; font-size: 1.1em; color: #aaa; letter-spacing: 0.5px; }
+        .copy-icon {
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+            background: #00ffff; color: #000; border-radius: 50%; font-weight: bold;
+        }
+
+        /* Form Konfirmasi Transfer */
+        #confirmOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 999; justify-content: center; align-items: center;
+        }
+        #confirmForm {
+            background: #1a1a1a; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
+            border: 3px solid #00ffff; box-shadow: 0 0 40px rgba(0,255,255,0.3); text-align: center;
+        }
+        #confirmForm h3 { color: #00ffff; margin-bottom: 20px; font-size: 1.5em; }
+        #confirmForm input {
+            width: 100%; padding: 14px; margin: 12px 0; background: #1c1c1e; border: 1px solid #333;
+            border-radius: 12px; color: #fff; font-size: 1.1em;
+        }
+        #confirmForm input:focus { outline: none; border-color: #00ffff; }
+        #confirmForm button {
+            width: 100%; padding: 16px; background: #2ecc71; color: #000; border: none;
+            border-radius: 15px; font-weight: bold; font-size: 1.2em; cursor: pointer; margin-top: 10px;
+        }
+        #confirmForm button:hover { background: #27ae60; }
+        #closeForm { background: #ff4444; margin-top: 10px; }
+
+        /* Notifikasi */
+        #toast, #success-notif {
+            visibility: hidden; min-width: 280px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 50px; padding: 16px 24px; position: fixed; z-index: 999;
+            left: 50%; bottom: 30px; transform: translateX(-50%); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #444; display: flex; align-items: center; justify-content: center; gap: 12px;
+            opacity: 0; transition: all 0.4s ease; font-size: 1.1em;
+        }
+        #success-notif { background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; font-weight: bold; }
+        #toast.show, #success-notif.show { visibility: visible; opacity: 1; bottom: 60px; }
+
+        .btn-cancel { display: block; text-align: center; margin-top: 40px; color: #ff4444; text-decoration: none; font-size: 0.9em; }
+        .btn-confirm {
+            display: block; width: 100%; margin-top: 40px; padding: 18px;
+            background:#2ecc71; color:#000; font-weight:bold; font-size:1.2em;
+            border:none; border-radius:15px; cursor:pointer; box-shadow: 0 5px 15px rgba(46,204,113,0.4);
+        }
+        .btn-confirm:hover { background:#27ae60; transform: translateY(-2px); }
+        .btn-confirm:active { transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Total Tagihan</h2>
+    <div class="amount-box">
+        <div class="amount" id="total-amount">Rp 0</div>
+        <div class="copy-hint">Klik metode untuk Salin & Proses</div>
+    </div>
+
+    <!-- E-Wallet & Bank Transfer (sama seperti sebelumnya) -->
+    <div class="section-label">E-Wallet (Salin & Coba Buka App)</div>
+    <div class="payment-item" onclick="handlePayment('089509394128', 'DANA', 'dana:')">
+        <div class="logo-wrapper"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/1200px-Logo_dana_blue.svg.png" class="logo-img" alt="DANA"></div>
+        <div class="info"><div class="name">DANA a.n. Fadel Store</div><div class="number">0895 0939 4128</div></div>
+        <div class="copy-icon">Right Arrow</div>
+    </div>
+    <div class="payment-item" onclick="handlePayment('089509394128', 'GOPAY', 'gojek:')">
+        <div class="logo-wrapper"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png" class="logo-img" alt="GOPAY"></div>
+        <div class="info"><div class="name">GOPAY A.n. Fadel Store</div><div class="number">0895 0939 4128</div></div>
+        <div class="copy-icon">Right Arrow</div>
+    </div>
+    <div class="payment-item" onclick="handlePayment('089509394128', 'SHOPEEPAY', 'shopeeid:')">
+        <div class="logo-wrapper"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg" class="logo-img" alt="SHOPEEPAY"></div>
+        <div class="info"><div class="name">SHOPEEPAY A.n. Fadel Store</div><div class="number">0895 0939 4128</div></div>
+        <div class="copy-icon">Right Arrow</div>
+    </div>
+
+    <div class="section-label">Bank Transfer (Salin No. Rekening)</div>
+    <div class="payment-item" onclick="handlePayment('6600987654', 'BCA', null)">
+        <div class="logo-wrapper"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/1200px-Bank_Central_Asia.svg.png" class="logo-img" alt="BCA"></div>
+        <div class="info"><div class="name">BCA A.n. Fadel Store</div><div class="number">6600 9876 54</div></div>
+        <div class="copy-icon">Clipboard</div>
+    </div>
+    <div class="payment-item" onclick="handlePayment('1234567890', 'MANDIRI', null)">
+        <div class="logo-wrapper"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1200px-Bank_Mandiri_logo_2016.svg.png" class="logo-img" alt="MANDIRI"></div>
+        <div class="info"><div class="name">MANDIRI A.n. Fadel Store</div><div class="number">1234 5678 90</div></div>
+        <div class="copy-icon">Clipboard</div>
+    </div>
+    <div class="payment-item" onclick="handlePayment('0123456789', 'BNI', null)">
+        <div class="logo-wrapper"><img src="https://i.pinimg.com/736x/36/38/43/36384348ef9d7bfff66da6da9e975d56.jpg" class="logo-img" alt="BNI"></div>
+        <div class="info"><div class="name">BNI A.n. Fadel Store</div><div class="number">0123 4567 89</div></div>
+        <div class="copy-icon">Clipboard</div>
+    </div>
+
+    <!-- TOMBOL SUDAH TRANSFER -->
+    <button class="btn-confirm" onclick="openConfirmForm()">Saya Sudah Transfer</button>
+
+    <a href="keranjang.html" class="btn-cancel">Batalkan Pesanan (Kembali ke Keranjang)</a>
+</div>
+
+<!-- FORM KONFIRMASI TRANSFER (CANTIK!) -->
+<div id="confirmOverlay">
+  <div id="confirmForm">
+    <h3>Konfirmasi Transfer</h3>
+    <p style="color:#888; margin-bottom:20px;">Silakan isi data kamu</p>
+    <input type="text" id="inputNama" placeholder="Nama Lengkap" required>
+    <input type="text" id="inputWA" placeholder="No. WhatsApp (62895xxxxxxxx)" required>
+    <button onclick="konfirmasiTransfer()">Kirim & Lanjut</button>
+    <button id="closeForm" onclick="closeConfirmForm()">Batal</button>
+  </div>
+</div>
+
+<!-- Notifikasi -->
+<div id="toast">
+    <span>Checkmark</span>
+    <span id="toast-text">Nomor Berhasil Disalin!</span>
+</div>
+<div id="success-notif">
+    <span>Checkmark</span>
+    <span id="success-text">Order berhasil dikirim ke Admin!</span>
+</div>
+
+<script>
+    function formatRupiah(number) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    function calculateGrandTotal() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        let total = 0;
+        for (const key in cart) total += cart[key].price * cart[key].quantity;
+        return total;
+    }
+
+    function loadTotalAmount() {
+        const total = calculateGrandTotal();
+        document.getElementById('total-amount').textContent = formatRupiah(total);
+        if (total === 0) {
+            showToast('Keranjang kosong!');
+            setTimeout(() => window.location.href = 'produk.html', 1500);
+        }
+    }
+
+    function handlePayment(number, bankName, deepLink) {
+        const clean = number.replace(/\s/g,'');
+        navigator.clipboard.writeText(clean).then(() => {
+            showToast(`No. ${bankName} (${clean}) disalin!`);
+            if (deepLink) setTimeout(() => location.href = deepLink, 1000);
+        }).catch(() => showToast('Gagal salin otomatis'));
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-text').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function showSuccess(msg) {
+        const notif = document.getElementById('success-notif');
+        document.getElementById('success-text').textContent = msg;
+        notif.classList.add('show');
+        setTimeout(() => notif.classList.remove('show'), 4000);
+    }
+
+    // Buka form konfirmasi
+    function openConfirmForm() {
+        document.getElementById('confirmOverlay').style.display = 'flex';
+        document.getElementById('inputNama').focus();
+    }
+
+    function closeConfirmForm() {
+        document.getElementById('confirmOverlay').style.display = 'none';
+    }
+
+    // Proses konfirmasi transfer
+    function konfirmasiTransfer() {
+        const nama = document.getElementById('inputNama').value.trim();
+        const nohp = document.getElementById('inputWA').value.trim().replace(/[^\d]/g, '');
+
+        if (!nama || !nohp || nohp.length < 10) {
+            showToast('Nama & No. WA harus diisi dengan benar!');
+            return;
+        }
+
+        const totalText = document.getElementById('total-amount').textContent;
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        const detailKeranjang = Object.values(cart).map(item => 
+            `${item.name} (Size ${item.size || '-'}) x${item.quantity} = ${formatRupiah(item.price * item.quantity)}`
+        ).join('\n') || 'Tidak ada item';
+
+        const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+        const newOrder = {
+            id: Date.now(),
+            nama: nama,
+            nohp: nohp,
+            total: totalText,
+            detail: detailKeranjang,
+            waktu: new Date().toLocaleString('id-ID')
+        };
+        orders.unshift(newOrder);
+        localStorage.setItem('admin_orders', JSON.stringify(orders));
+        localStorage.removeItem('cart');
+
+        closeConfirmForm();
+        showSuccess(`Terima kasih ${nama}! Order kamu sudah kami terima.`);
+
+        setTimeout(() => {
+            window.location.href = `admin/konfirmasi-pembayaran.html?highlight=${newOrder.id}`;
+        }, 2000);
+    }
+
+    window.onload = loadTotalAmount;
+</script>
+
+</body>
+</html>

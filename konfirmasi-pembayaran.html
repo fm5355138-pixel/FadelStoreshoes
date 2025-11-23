@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konfirmasi Pembayaran - Fadel Store Admin</title>
+  <style>
+    body {background:#0d0d0d; color:#fff; font-family:Arial,sans-serif; margin:0; padding:20px; min-height:100vh;}
+    .header {text-align:center; padding:25px; background:#1a1a1a; border-radius:20px; border:3px solid #00ffff; margin-bottom:30px;}
+    h1 {color:#00ffff; margin:0; font-size:2em;}
+    .subtitle {color:#888; font-size:1em; margin-top:10px;}
+    .container {max-width:700px; margin:0 auto;}
+    .card {
+      background:#1c1c1e; border:2px solid #333; border-radius:15px; padding:22px; margin:20px 0;
+      position:relative; box-shadow:0 5px 20px rgba(0,0,0,0.5); transition:all 0.3s;
+    }
+    .card.new {border-color:#00ffff; box-shadow:0 0 40px rgba(0,255,255,0.8); animation:glow 2s infinite;}
+    @keyframes glow {0%,100%{box-shadow:0 0 40px rgba(0,255,255,0.8)} 50%{box-shadow:0 0 60px rgba(0,255,255,1)}}
+    .badge {position:absolute; top:-15px; left:50%; transform:translateX(-50%); background:#ff4444; color:#fff; padding:10px 30px; border-radius:30px; font-weight:bold; font-size:1em; animation:pulse 1.5s infinite;}
+    @keyframes pulse {0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.15)}}
+    .id {position:absolute; top:12px; right:18px; background:#00ffff; color:#000; padding:6px 14px; border-radius:20px; font-size:0.85em; font-weight:bold;}
+    .info {margin:15px 0; display:flex; justify-content:space-between;}
+    .label {color:#888; font-size:0.95em;}
+    .value {color:#2ecc71; font-weight:bold; font-size:1.2em;}
+    .detail-table {width:100%; border-collapse:collapse; margin:15px 0; background:#111; border-radius:10px; overflow:hidden;}
+    .detail-table th {background:#222; padding:12px; text-align:left; font-size:0.9em; color:#00ffff;}
+    .detail-table td {padding:10px 12px; border-bottom:1px solid #333; font-size:0.95em;}
+    .detail-table tr:last-child td {border:none;}
+    .total-row {background:#1a1a1a; font-weight:bold; color:#2ecc71;}
+    .btn-group {text-align:center; margin-top:25px;}
+    .btn {padding:14px 28px; margin:8px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1em;}
+    .btn-wa {background:#2ecc71; color:#000;}
+    .btn-done {background:#00ffff; color:#000;}
+    .empty {text-align:center; padding:80px; color:#888; font-size:1.4em;}
+    .footer {text-align:center; margin:50px 0 20px; color:#555;}
+    .footer a {color:#00ffff; text-decoration:none; margin:0 15px; font-weight:bold;}
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Konfirmasi Pembayaran</h1>
+    <p class="subtitle">Cek & konfirmasi pembayaran customer — uang langsung masuk ke Dashboard!</p>
+  </div>
+
+  <div id="orderList">
+    <div class="empty">Menunggu pembayaran masuk...</div>
+  </div>
+
+  <div class="footer">
+    <a href="dashboard.html">Dashboard</a> • 
+    <a href="../index.html">Kembali ke Toko</a>
+  </div>
+</div>
+
+<script>
+function loadOrders() {
+  const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  const list = document.getElementById('orderList');
+  const urlParams = new URLSearchParams(window.location.search);
+  const highlightId = urlParams.get('highlight');
+
+  if (orders.length === 0) {
+    list.innerHTML = '<div class="empty">Belum ada pembayaran masuk</div>';
+    return;
+  }
+
+  orders.sort((a, b) => b.id - a.id);
+
+  list.innerHTML = orders.map(order => {
+    const isNew = highlightId && order.id == highlightId;
+    return `
+      <div class="card ${isNew ? 'new' : ''}">
+        ${isNew ? '<div class="badge">PEMBAYARAN BARU!</div>' : ''}
+        <div class="id">#${order.id.toString().slice(-6)}</div>
+
+        <div class="info"><div class="label">Nama</div><div class="value">${order.nama}</div></div>
+        <div class="info"><div class="label">WhatsApp</div><div class="value">+62${order.nohp}</div></div>
+        <div class="info"><div class="label">Waktu</div><div class="value">${order.waktu}</div></div>
+
+        <div style="margin:20px 0;">
+          <div class="label" style="margin-bottom:10px;">Detail Pesanan</div>
+          <table class="detail-table">
+            <thead><tr><th>Produk</th><th>Size</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>
+            <tbody>
+              ${order.detail.split('\n').filter(l=>l.trim()).map(l=>{
+                const p=l.split(' x'); const ns=p[0].split(' (Size ');
+                const name=ns[0]; const size=ns[1]?.replace(')','')||'-';
+                const qty=p[1]?.split(' = ')[0]||'1';
+                const sub=p[1]?.split(' = ')[1]||'Rp 0';
+                const price = sub&&qty ? (parseInt(sub.replace(/\D/g,''))/parseInt(qty)).toLocaleString('id-ID'):'0';
+                return `<tr><td>${name}</td><td>${size}</td><td>${qty}</td><td>Rp ${price}</td><td>${sub}</td></tr>`;
+              }).join('')}
+              <tr class="total-row"><td colspan="4"><strong>TOTAL BAYAR</strong></td><td><strong>${order.total}</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-wa" onclick="chatWA('${order.nohp}','${order.nama}')">Chat WhatsApp</button>
+          <button class="btn btn-done" onclick="konfirmasiSelesai(${order.id})">Sudah Dibayar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function chatWA(nohp, nama) {
+  const msg = encodeURIComponent(`Halo ${nama}!\nTerima kasih sudah transfer\nOrder kamu sedang kami proses ya!\n\nFadel Store`);
+  window.open(`https://wa.me/${nohp}?text=${msg}`, '_blank');
+}
+
+function konfirmasiSelesai(id) {
+  if (confirm('Pembayaran sudah dikonfirmasi?\nUang akan langsung masuk ke Dashboard Penjualan.')) {
+    const pending = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+    const confirmed = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+
+    const orderIndex = pending.findIndex(o => o.id === id);
+    if (orderIndex === -1) return;
+
+    const order = pending[orderIndex];
+    confirmed.push(order);
+    localStorage.setItem('admin_confirmed_orders', JSON.stringify(confirmed));
+
+    pending.splice(orderIndex, 1);
+    localStorage.setItem('admin_orders', JSON.stringify(pending));
+
+    alert(`Pembayaran ${order.total} berhasil dikonfirmasi!\nUang sudah masuk ke Dashboard.`);
+    loadOrders();
+  }
+}
+
+setInterval(loadOrders, 10000);
+window.onload = loadOrders;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ulasan Pelanggan - Fadel Store</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background-color: #0d0d0d; 
+            color: #ffffff; 
+            margin: 0; 
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header { 
+            background-color: #1a1a1a; 
+            padding: 15px 50px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid #00ffff; 
+        }
+        .logo { color: #00ffff; font-size: 1.5em; font-weight: bold; }
+        .nav a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            margin-left: 25px; 
+            transition: color 0.3s; 
+        }
+        .nav a:hover { color: #ffc107; }
+
+        .container { 
+            max-width: 1000px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        
+        h1 { color: #ffc107; margin-bottom: 10px; font-size: 2.5em; }
+        .subtitle { font-size: 1.1em; color: #aaa; margin-bottom: 40px; }
+
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            text-align: left;
+            margin-top: 40px; 
+        }
+
+        .review-item {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            animation: fadeUp 0.7s ease forwards;
+            opacity: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        
+        .review-item:hover {
+            transform: translateY(-7px) scale(1.02);
+            box-shadow: 0 0 20px #00ffff80;
+        }
+
+        .rating { font-size: 1.5em; color: #00ffff; margin-bottom: 10px; }
+        .review-text { font-size: 0.95em; line-height: 1.6; margin-bottom: 15px; }
+        .reviewer-info { 
+            font-size: 0.85em; 
+            color: #ccc; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 10px;
+        }
+        .reviewer-name { 
+            font-weight: bold; 
+            color: #ffc107; 
+            display: inline-block; 
+        }
+        .review-date {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+
+        .owner-reply-container {
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 3px solid #ffc107; 
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            padding: 10px 15px;
+        }
+
+        .owner-reply-header {
+            font-weight: bold;
+            color: #00ffff;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        .owner-reply-text {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .reply-button {
+            background: none;
+            border: none;
+            color: #00ffff;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 0;
+            transition: color 0.3s;
+            display: block;
+        }
+        .reply-button:hover {
+            color: #ffc107;
+        }
+    
+        .review-form-section {
+            background-color: #1a1a1a;
+            padding: 40px;
+            border-radius: 12px;
+            margin-top: 40px;
+            margin-bottom: 40px; 
+            border: 1px solid #00ffff;
+            text-align: left;
+        }
+        .review-form-section h2 {
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .review-form label,
+        .reply-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        .review-form input[type="text"],
+        .review-form textarea,
+        .reply-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            box-sizing: border-box; 
+        }
+        .star-rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .star-rating-input input[type="radio"] { display: none; }
+        .star-rating-input label {
+            font-size: 2em; color: #444; cursor: pointer; transition: color 0.2s; margin: 0 3px;
+        }
+        .star-rating-input input[type="radio"]:checked ~ label,
+        .star-rating-input label:hover,
+        .star-rating-input label:hover ~ label { color: #ffc107; }
+        .review-form button,
+        .reply-form button {
+            background-color: #00ffff;
+            color: #0d0d0d;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: background-color 0.3s, transform 0.2s;
+            width: 100%;
+        }
+        .review-form button:hover,
+        .reply-form button:hover {
+            background-color: #ffc107;
+            transform: translateY(-2px);
+        }
+
+        .reply-form-container {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px dashed #333;
+            border-radius: 8px;
+            display: none; 
+        }
+        .reply-form-container.active {
+            display: block; 
+        }
+        .reply-form button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+
+        .total-review-summary { margin-top: 20px; font-size: 1.1em; color: #aaa; }
+        
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .nav a { margin-left: 15px; }
+            h1 { font-size: 2em; }
+            .review-form-section { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">Fadel Store</div>
+    <div class="nav">
+        <a href="index.html">Home</a>
+        <a href="produk.html">Produk</a>
+        <a href="keranjang.html">Keranjang</a>
+        <a href="review dan ulasan_pelanggan.html">Review</a>
+        <a href="tentang_kami.html">Tentang Kami</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Ulasan & Testimoni Pelanggan</h1>
+    <p class="subtitle">Pendapat jujur pelanggan tentang koleksi sneakers Fadel Store.</p>
+    
+    <p align="center" class="total-review-summary" id="reviewSummary"> 4,81 ⭐⭐⭐⭐⭐ - 32 Ulasan </p>
+    <hr>
+    
+    <div class="review-form-section">
+        <h2>Tulis Ulasan Anda</h2>
+        <form class="review-form" id="reviewForm">
+            <label for="name">Nama Anda:</label>
+            <input type="text" id="name" name="name" required placeholder="Contoh: Budi Santoso">
+
+            <label for="rating">Beri Penilaian Bintang:</label>
+            <div class="star-rating-input">
+                <input type="radio" id="star5" name="rating" value="5" required /><label for="star5" title="Sangat Baik">★</label>
+                <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Baik">★</label>
+                <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Cukup">★</label>
+                <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kurang Baik">★</label>
+                <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Buruk">★</label>
+            </div>
+
+            <label for="review-text">Tulis Ulasan Anda (Maks. 500 Karakter):</label>
+            <textarea id="review-text" name="review-text" rows="5" maxlength="500" required placeholder="Contoh: Sepatu Adidas saya keren, ringan, dan pas di kaki. Pengiriman juga cepat!"></textarea>
+
+            <button type="submit">Kirim Ulasan</button>
+        </form>
+        <p style="text-align: center; font-size: 0.8em; color: #555; margin-top: 15px;">Ulasan dan balasan hanya ditampilkan secara dinamis (front-end) dan tidak disimpan secara permanen.</p>
+    </div>
+    <div class="review-grid" id="reviewGrid">
+        
+        <div class="review-item" style="animation-delay: 0.1s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+            <p class="review-text">"Puma Speed Cat-nya ringan dan nyaman banget dipakai. Cocok buat dipakai harian maupun driving shoes. Detail suede -nya sangat premium."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Aldi Saputra</span>
+                <span class="review-date">22 November 2025, 10:30 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Terima kasih banyak atas ulasan bintang 5-nya, Kak Aldi! Kami senang Speed Cat menjadi favorit Anda.</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form">
+                    <textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea>
+                    <button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 0.2s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+            <p class="review-text">"Adidas Adizero Evosl ini asli enak buat lari jarak jauh. Cushioning -nya empuk dan sangat responsif. Sepatu running terbaik yang saya punya."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Hana Wulandari</span>
+                <span class="review-date">21 November 2025, 15:45 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="reply-form-container">
+                <form class="reply-form">
+                    <textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea>
+                    <button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 0.3s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div>
+            <p class="review-text">"Asics Gel Kayano 14 bener-bener nyaman dan stabil. Cocok buat yang butuh sepatu dengan dukungan ekstra. Pengiriman super aman."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Ridho Kurniawan</span>
+                <span class="review-date">21 November 2025, 08:00 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Betul sekali, Kayano 14 memang juara soal stabilitas! Kami selalu usahakan yang terbaik. Salam!</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form">
+                    <textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea>
+                    <button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 0.4s;" data-rating="4">
+            <div class="rating">⭐⭐⭐⭐</div><p class="review-text">"Adidas Sumatra-nya mantap, warna maroon-nya elegan. Real 100% Sesuai Barang -nya. Sayang pengirimannya agak lambat dari estimasi."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Nindy Amelia</span>
+                <span class="review-date">20 November 2025, 12:50 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Mohon maaf atas keterlambatan pengirimannya, Kak Nindy. Kami akan terus bekerja sama dengan kurir untuk meningkatkan kecepatan layanan.</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form>
+            </div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 0.5s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"New Balance 740 nyaman banget dan looks clean. Pas buat outfit santai dan jalankaki lama. Puas dengan produk ini."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Kevin Pradana</span>
+                <span class="review-date">20 November 2025, 10:00 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 0.6s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Asics Magic Speed 4 responsif buat sprint maupun jogging. Solnya kokoh tapi ringan. Benar-benar sepatu lomba yang worth!"</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Silvi Putu</span>
+                <span class="review-date">19 November 2025, 16:30 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 0.7s;" data-rating="3">
+            <div class="rating">⭐⭐⭐</div><p class="review-text">"Sepatu Asics Tokyo-nya bagus, tapi jahitan di bagian lidah sedikit kurang rapi. Tidak terlalu terlihat, tapi saya berharap quality control (QC) lebih ketat."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Melani Oktavia</span>
+                <span class="review-date">18 November 2025, 11:20 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Kami berterima kasih atas observasi detailnya, Kak Melani. Kami akan segera melakukan QC ganda untuk produk Asics di batch berikutnya.</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form>
+            </div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 0.8s;" data-rating="4">
+            <div class="rating">⭐⭐⭐⭐</div><p class="review-text">"New Balance 550 ini cakep parah, style retro -nya gak pernah gagal. Cuma ukurannya agak sempit, saran saya half-size up."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Rena Kartika</span>
+                <span class="review-date">17 November 2025, 21:00 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+             <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Terima kasih atas info sizing-nya, Kak Rena. Kami akan perjelas saran half-size up ini di deskripsi produk 550.</div>
+            </div>
+            <div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 0.9s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"New Balance 530 white -nya super clean dan nyaman. Enak dipakai seharian untuk jalan. Pengiriman cepat dan kotak tidak penyok!"</p>
+            <div class="reviewer-info">                
+                <span class="reviewer-name">- Dimas Arya</span>
+                <span class="review-date">17 November 2025, 15:55 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 1.0s;" data-rating="3">
+            <div class="rating">⭐⭐⭐</div>
+            <p class="review-text">"Nike Air Force 1 saya bagus, tapi pengirimannya lama sekali dan ada noda kecil yang lumayan terlihat di bagian tali. Tolong ditingkatkan."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Clara Setiawan</span>
+                <span class="review-date">16 November 2025, 09:15 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Kami mohon maaf atas kendala pengiriman dan noda pada produk. Kami akan segera kontak Kak Clara untuk solusi pengembalian atau diskon khusus. Terima kasih atas feedback konstruktifnya.</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form">
+                    <textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea>
+                    <button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 1.1s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Puma Suede XL warna birunya smooth banget. Klasik tapi tetap modern, bahannya tebal dan nyaman dipakai untuk casual look."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Bagus Permana</span>
+                <span class="review-date">15 November 2025, 18:30 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+
+        <div class="review-item" style="animation-delay: 1.2s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Pilihan sepatu running Asics lengkap banget. Kayano 14 memang nyaman buat lari jarak jauh. Pelayanannya cepat."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Julian Mahesa</span>
+                <span class="review-date">14 November 2025, 09:10 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        
+        <div class="review-item" style="animation-delay: 1.3s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Sepatu running Asics Tokyo yang saya beli super ringan. Cocok buat lomba lari 10k!"</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Devi Kusuma</span>
+                <span class="review-date">13 November 2025, 14:00 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.4s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Puma Speed Cat original. Detail stitching -nya rapi banget, warna hitamnya elegan."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Sinta Ayu</span>
+                <span class="review-date">12 November 2025, 19:25 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.5s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Adidas Adizero Evosl cocok banget buat speed training. Keren dan sangat ringan."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Yoga Mulyadi</span>
+                <span class="review-date">11 November 2025, 11:45 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.6s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"New Balance 740 ini underrated padahal enak banget dipakai untuk daily!"</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Vella Auryn</span>
+                <span class="review-date">10 November 2025, 16:15 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.7s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Asics Magic Speed 4 performanya gila. Sangat responsif. Kaki tidak mudah capek dan luka."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Farel Putra</span>
+                <span class="review-date">09 November 2025, 08:35 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.8s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Pelayanan cepat, Adminnya ramah. Sepatu Nike Air Force 1 yang saya pesan datang sesuai estimasi. Ukurannya pas!"</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Bayu Adriansyah</span>
+                <span class="review-date">08 November 2025, 17:30 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 1.9s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Puma Suede XL original. Bahannya lembut dan jahitan kuat. Cocok untuk semua style."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Rina Permata</span>
+                <span class="review-date">07 November 2025, 14:15 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 2.0s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"New Balance 530 yang saya cari ada di sini. Kualitas barang bagus, mesh -nya adem."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Citra Lestari</span>
+                <span class="review-date">06 November 2025, 17:10 WIB</span>
+            </div>
+             <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 2.1s;" data-rating="5">
+            <div class="rating">⭐⭐⭐⭐⭐</div><p class="review-text">"Adidas Sumatra warna merah maroon -nya retro abis! Dapat harga terbaik di Fadel Store. Puas banget."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Eka Putri</span>
+                <span class="review-date">05 November 2025, 14:00 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button><div class="reply-form-container"><form class="reply-form"><textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea><button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button></form></div>
+        </div>
+        <div class="review-item" style="animation-delay: 2.2s;" data-rating="4">
+            <div class="rating">⭐⭐⭐⭐</div><p class="review-text">"Sudah beli 3 pasang sepatu di sini. Semua original. Stock New Balance 550 all-white tolong diperbanyak lagi ya."</p>
+            <div class="reviewer-info">
+                <span class="reviewer-name">- Fauzan Malik</span>
+                <span class="review-date">04 November 2025, 19:40 WIB</span>
+            </div>
+            <button class="reply-button" onclick="toggleReplyForm(this)">Balas</button>
+            <div class="owner-reply-container">
+                <div class="owner-reply-header">Dibalas oleh Fadel Store (Admin)</div>
+                <div class="owner-reply-text">Siap, Kak Fauzan! Feedback stock NB 550 kami catat dan sedang dalam proses restock. Terima kasih!</div>
+            </div>
+            <div class="reply-form-container">
+                <form class="reply-form">
+                    <textarea placeholder="Tulis balasan Anda..." rows="3" required></textarea>
+                    <button type="button" onclick="submitOwnerReply(this)">Kirim Balasan</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

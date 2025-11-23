@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Keranjang Belanja - Fadel Store</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0d0d0d; color: #ffffff; margin: 0; padding: 20px; }
+        .header { background-color: #1a1a1a; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffff; margin: -20px -20px 20px -20px; }
+        .logo { color: #00ffff; font-size: 1.5em; font-weight: bold; }
+        .nav a { color: #ffffff; text-decoration: none; margin-left: 25px; transition: color 0.3s; } 
+        .nav a:hover { color: #ffc107; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; color: #ffc107; margin-bottom: 30px; }
+
+        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .cart-table th, .cart-table td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #333;
+        }
+        .cart-table th { 
+            background-color: #1a1a1a; 
+            color: #00ffff; 
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 50px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            color: #ccc;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .total-row td {
+            font-weight: bold;
+            font-size: 1.2em;
+            border-top: 2px solid #00ffff;
+            color: #2ecc71;
+        }
+
+        .checkout-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #ffc107;
+            color: black;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .checkout-btn:hover {
+            background-color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">Fadel Store</div>
+    <div class="nav">
+        <a href="index.html">Home</a>
+        <a href="produk.html">Produk</a>
+        <a href="keranjang.html">Keranjang</a>
+        <a href="checkout.html">Check Out</a> 
+        <a href="tentang_kami.html">Tentang Kami</a> 
+
+    </div>
+</div>
+
+<div class="container">
+    <h1>Keranjang Belanja Anda 🛒</h1>
+
+    <div id="cart-content">
+        <div class="empty-cart" id="empty-message">Keranjang Anda masih kosong. Silakan belanja!</div>
+    </div>
+
+    <a href="pembayaran.html" class="checkout-btn" id="checkout-link" style="display:none;">Lanjutkan ke Pembayaran</a>
+    <a href="produk.html" class="checkout-btn" style="background-color: #333; margin-top: 10px;">Tambah Produk Lain</a>
+
+</div>
+
+<script>
+    function formatRupiah(number) {
+        if (typeof number !== 'number') return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    function renderCart() {
+        const cartData = JSON.parse(localStorage.getItem('cart')) || {};
+        const cartKeys = Object.keys(cartData);
+        const cartContent = document.getElementById('cart-content');
+        const emptyMessage = document.getElementById('empty-message');
+        const checkoutLink = document.getElementById('checkout-link');
+        let grandTotal = 0;
+
+        if (cartKeys.length === 0) {
+            emptyMessage.style.display = 'block';
+            checkoutLink.style.display = 'none';
+            cartContent.innerHTML = `<div class="empty-cart" id="empty-message">Keranjang Anda masih kosong. Silakan belanja!</div>`;
+            return;
+        }
+
+        emptyMessage.style.display = 'none';
+        checkoutLink.style.display = 'block';
+
+        let tableHTML = `
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Produk</th>
+                        <th>Size</th>
+                        <th>Harga Satuan</th>
+                        <th>Barang</th>
+                        <th>Subtotal</th>
+                        <th>Hapus</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const key of cartKeys) {
+            const item = cartData[key];
+            const subtotal = item.price * item.quantity;
+            grandTotal += subtotal;
+
+            tableHTML += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.size}</td>
+                    <td>${formatRupiah(item.price)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatRupiah(subtotal)}</td>
+                    <td><button class="delete-btn" onclick="removeItem('${key}')">Hapus</button></td>
+                </tr>
+            `;
+        }
+
+        tableHTML += `
+                <tr class="total-row">
+                    <td colspan="4">TOTAL</td>
+                    <td>${formatRupiah(grandTotal)}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        `;
+        
+        cartContent.innerHTML = tableHTML;
+    }
+
+
+    function removeItem(key) {
+        let cartData = JSON.parse(localStorage.getItem('cart')) || {};
+        
+        if (cartData[key]) {
+            delete cartData[key];
+            localStorage.setItem('cart', JSON.stringify(cartData));
+            renderCart();
+        }
+    }
+
+    window.onload = renderCart;
+</script>
+
+</body>
+</html>

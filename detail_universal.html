@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title id="page-title">Detail Produk Universal</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0d0d0d; color: #ffffff; margin: 0; }
+        .header { background-color: #1a1a1a; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffff; }
+        .logo { color: #00ffff; font-size: 1.5em; font-weight: bold; }
+        .nav a { color: #ffffff; text-decoration: none; margin-left: 25px; }
+        
+        .product-box { max-width: 900px; margin: 50px auto; background: #1a1a1a; padding: 30px; border-radius: 12px; display: flex; gap: 40px; }
+        /* Menggunakan style untuk menangani display flex saat error */
+        .product-box.error-state { display: block; }
+
+        .product-image { width: 45%; max-height: 400px; object-fit: contain; background: white; border-radius: 8px; }
+        .product-info { width: 55%; }
+        h2 { color: #00ffff; font-size: 2em; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        .product-description { 
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 4px;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"], select { padding: 12px; margin-bottom: 20px; width: 100%; box-sizing: border-box; background: #333; color: white; border: 1px solid #00ffff; border-radius: 4px; }
+        
+        .add-btn { 
+            padding: 15px 30px; 
+            background-color: #ffc107; 
+            color: black; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin-right: 15px;
+        }
+        .back-btn {
+            padding: 15px 30px; 
+            background-color: #333; 
+            color: white; 
+            border: 1px solid #00ffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">Fadel Store</div>
+    <div class="nav">
+        <a href="index.html">Home</a>
+        <a href="produk.html">Produk</a>
+        <a href="keranjang.html">Keranjang</a>
+        <a href="tentang_kami.html">Tentang Kami</a>
+    </div>
+</div>
+
+<div class="product-box" id="product-detail-container">
+    <img id="product-image-display" src="" alt="Gambar Produk" class="product-image" style="display:none;">
+    <div class="product-info">
+        <h2 id="product-name-display">Memuat...</h2>
+        <p style="font-size: 1.3em; color: #00ffff;">Harga: <span id="product-price-display">...</span></p>
+
+        <div id="product-description-display" class="product-description">Memuat Deskripsi...</div>
+
+        <form id="add-to-cart-form"> 
+            <label for="size">Pilih Size:</label>
+            <select id="size" required>
+                <option value="" disabled selected>Pilih Size</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="31">31</option>
+                <option value="32">32</option>
+                <option value="33">33</option>
+                <option value="34">34</option>
+                <option value="35">35</option>
+                <option value="36">36</option>
+                <option value="37">37</option>
+                <option value="38">38</option>
+                <option value="39">39</option>
+                <option value="40">40</option>
+                <option value="41">41</option>
+                <option value="42">42</option>
+                <option value="43">43</option>
+                <option value="44">44</option>
+                <option value="45">45</option>
+            </select>
+            
+            <label for="qty">Barang:</label>
+            <input type="number" id="qty" value="1" min="1" required>
+
+            <button type="submit" class="add-btn">Masukkan Keranjang</button>
+            <a href="produk.html" class="back-btn">Kembali ke Produk</a>
+        </form>
+    </div>
+</div>
+
+<script>
+    const PRODUCT_DB = {
+        'PSCAT': { 
+            name: 'Puma Speed Cat', 
+            price: 1899000, 
+            image: 'https://images.puma.net/images/380173/01/fnd/AUS/w/1000/h/1000/bg/255,255,255',
+            description: 'Puma Speed Cat adalah ikon desain motorsport. Sepatu ramping ini menawarkan cengkeraman optimal dan gaya retro yang tak lekang oleh waktu, sangat cocok untuk penggemar balap dan gaya kasual.'
+        },
+        'AZEV': { 
+            name: 'Adidas Adizero Evosl', 
+            price: 2899000, 
+            image: 'https://sneakernews.com/wp-content/uploads/2024/10/adidas-adizero-evo-sl-black-white-jp7149-1_1600ea.jpg?w=1200',
+            description: 'Dirancang untuk kecepatan ekstrem. Adizero Evosl adalah sepatu lari super ringan yang memberikan energi responsif dan bantalan yang minim, ideal untuk sesi lari cepat dan perlombaan maraton.'
+        },
+        'AGK14': { 
+            name: 'Asics Gel Kayano 14', 
+            price: 2499000, 
+            image: 'https://sneakernews.com/wp-content/uploads/2025/04/asics-gel-kayano-14-arctic-sky-pure-silver-1203a537-400-2.jpg',
+            description: 'Kembalinya legenda lari stabilitas. Gel Kayano 14 menawarkan kenyamanan premium dan dukungan bantalan GEL yang andal, sempurna untuk penggunaan sehari-hari atau lari jarak jauh.'
+        },
+        'ASUM': { 
+            name: 'Adidas Sumatra', 
+            price: 3199000, 
+            image: 'https://images.tokopedia.net/img/cache/500-square/VqbcmM/2025/4/3/c09d78d4-ed1b-4ac2-ae0f-bb2d28cec38b.jpg?ect=4g',
+            description: 'Adidas Sumatra adalah perpaduan sempurna antara gaya klasik Torsion dengan sentuhan modern. Sepatu ini dirancang untuk kenyamanan maksimal dan tampilan yang mencolok, cocok untuk kolektor.'
+        },
+        'NB740': { 
+            name: 'New Balance 740', 
+            price: 1800000, 
+            image: 'https://www.careofcarl.com/bilder/artiklar/600x600_grey_4_5/28735511r.jpg',
+            description: 'Model retro basket klasik dari New Balance. NB 740 menawarkan siluet tebal dengan bahan kulit berkualitas tinggi dan bantalan yang solid, memberikan vibe tahun 90-an yang autentik.'
+        },
+        'ASMS': {
+            name: 'Asics Magic Speed',
+            price: 2199000,
+            image: 'https://tse3.mm.bing.net/th/id/OIP.jA_RdBubK2hnSxzqzioI8QHaHa?pid=Api&P=0&h=180$',
+            description: 'Dirancang untuk pelari yang ingin mencapai catatan waktu baru. Magic Speed menampilkan pelat karbon di midsole untuk propulsi yang kuat, efisien, dan ringan.'
+        },
+        'ASTOKYO': {
+            name: 'Asics Tokyo',
+            price: 2999000,
+            image: 'https://images.stockx.com/images/ASICS-Metaspeed-Sky-Tokyo-Flash-Red-Black.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90&dpr=2&trim=color&updated_at=1746775558',
+            description: 'Edisi khusus yang merayakan semangat lari di Tokyo. Menawarkan stabilitas legendaris dengan teknologi bantalan GEL yang optimal dalam desain warna yang unik.'
+        },
+        'NB550': {
+            name: 'New Balance 550',
+            price: 1799000,
+            image: 'https://newbalance.sm.mncdn.com/mnresize/750/-/newbalance/products/NBBBW550AR_1.jpg',
+            description: 'Siluet basket tahun 80-an yang kembali populer. NB 550 menawarkan tampilan kulit klasik yang bersih dan tebal, sangat serbaguna untuk gaya kasual sehari-hari.'
+        },
+        'NB530': {
+            name: 'New Balance 530',
+            price: 1499000,
+            image: 'https://newbalance.sm.mncdn.com/mnresize/750/-/newbalance/products/NBBBW550AR_1.jpg',
+            description: 'Sepatu lari klasik tahun 90-an yang kini menjadi ikon gaya hidup. NB 530 dilengkapi teknologi bantalan ABZORB yang memberikan kenyamanan dan estetika retro-runner.'
+        },
+        'NFORCE1': {
+            name: 'Nike Air Force 1 ',
+            price: 1699000,
+            image: 'https://d2cva83hdk3bwc.cloudfront.net/nike-air-force-1-low--07-lv8-40th-anniversary-white-black-1.jpg',
+            description: 'Legenda sejati dalam budaya sneaker. Air Force 1 \'07 memiliki desain kulit yang tajam, bantalan Nike Air yang ikonik, dan siluet klasik yang tak lekang oleh waktu.'
+        },
+        'PSXL': {
+            name: 'Puma Suede XL ',
+            price: 1199200,
+            image: 'https://imagedelivery.net/4fYuQyy-r8_rpBpcY7lH_A/falabellaCL/50352255_1/w=800,h=800',
+            description: 'Puma Suede XL adalah interpretasi modern dari klasik Suede. Menampilkan bentuk yang lebih tebal dan lidah yang lebih besar, memberikan tampilan skate retro yang khas dan berani.'
+        }
+    };
+
+    function getQueryParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    function formatRupiah(number) {
+        if (typeof number !== 'number') return 'Harga Tidak Valid';
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    function loadProductDetails() {
+        const productId = getQueryParameter('id');
+        const productData = PRODUCT_DB[productId];
+        const container = document.getElementById('product-detail-container');
+
+        if (!productData) {
+            container.classList.add('error-state'); 
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; width: 100%;">
+                    <h2 style="color: #ffc107;">❌ Produk Tidak Ditemukan</h2>
+                    <p>Kode produk <strong>${productId ? productId : 'TIDAK ADA'}</strong> tidak terdaftar dalam database kami.</p>
+                    <p>Silakan kembali ke halaman produk untuk memilih item yang valid.</p>
+                    <a href="produk.html" class="back-btn" style="margin-top: 20px;">Kembali ke Produk</a>
+                </div>
+            `;
+            return;
+        }
+
+        
+        document.getElementById('page-title').textContent = productData.name;
+        document.getElementById('product-name-display').textContent = productData.name;
+
+        document.getElementById('product-price-display').textContent = formatRupiah(productData.price); 
+        document.getElementById('product-description-display').textContent = productData.description;
+        
+        const imgElement = document.getElementById('product-image-display');
+        imgElement.src = productData.image;
+        imgElement.style.display = 'block'; 
+        
+        document.getElementById('add-to-cart-form').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            
+            const size = document.getElementById('size').value;
+            const quantity = parseInt(document.getElementById('qty').value);
+            const key = productId + '_' + size; 
+
+            const newItem = { 
+                id: productId, 
+                name: productData.name, 
+                price: productData.price, 
+                size, 
+                quantity 
+            };
+
+            let cart = JSON.parse(localStorage.getItem('cart')) || {};
+
+            if (!size) {
+                 alert("Harap pilih Size terlebih dahulu.");
+                 return;
+            }
+
+            if (cart[key]) {
+                cart[key].quantity += quantity;
+            } else {
+                cart[key] = newItem;
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart)); 
+            alert(productData.name + " berhasil ditambahkan ke keranjang dengan jumlah " + quantity + "!");
+            window.location.href = 'keranjang.html'; 
+        });
+    }
+
+    loadProductDetails();
+</script>
+
+</body>
+</html>

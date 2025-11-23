@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Order - Fadel Store Admin</title>
+  <style>
+    body {background:#0d0d0d; color:#fff; font-family:Arial,sans-serif; margin:0; padding:20px; min-height:100vh;}
+    .container {max-width:600px; margin:40px auto; background:#1a1a1a; padding:35px; border-radius:25px; border:4px solid #00ffff; box-shadow:0 0 40px rgba(0,255,255,0.4);}
+    h1 {color:#00ffff; text-align:center; margin-bottom:10px; font-size:2.2em;}
+    .subtitle {text-align:center; color:#00ffff; font-weight:bold; margin-bottom:30px; font-size:1.1em;}
+    .badge {background:#ff4444; color:#fff; padding:12px 35px; border-radius:50px; font-weight:bold; font-size:1.1em; display:inline-block; animation:pulse 2s infinite;}
+    @keyframes pulse {0%,100%{transform:scale(1)} 50%{transform:scale(1.1)}}
+    .card {background:#1c1c1e; padding:30px; border-radius:20px; border:2px solid #333; position:relative; margin-top:20px;}
+    .info {margin:20px 0; text-align:center;}
+    .label {color:#888; font-size:1em; margin-bottom:8px;}
+    .value {color:#2ecc71; font-weight:bold; font-size:1.8em;}
+    .detail-table {width:100%; border-collapse:collapse; margin:25px 0; background:#111; border-radius:15px; overflow:hidden;}
+    .detail-table th {background:#00ffff; color:#000; padding:15px; font-size:1.1em;}
+    .detail-table td {padding:15px; text-align:center; border-bottom:1px solid #333; font-size:1.05em;}
+    .total-row {background:#1a1a1a !important; font-size:1.3em !important;}
+    .total-row td {color:#2ecc71; font-weight:bold;}
+    .btn-group {text-align:center; margin-top:35px;}
+    .btn {padding:16px 40px; margin:15px; border:none; border-radius:15px; font-weight:bold; cursor:pointer; font-size:1.2em; min-width:200px;}
+    .btn-wa {background:#2ecc71; color:#000;}
+    .btn-confirm {background:#00ffff; color:#000;}
+    .footer {text-align:center; margin-top:50px; color:#555; font-size:0.9em;}
+    .footer a {color:#00ffff; text-decoration:none; margin:0 15px; font-weight:bold;}
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Detail Order Baru</h1>
+  <p class="subtitle">Customer ini baru saja transfer — segera konfirmasi!</p>
+  <div style="text-align:center;">
+    <span class="badge">PEMBAYARAN BARU!</span>
+  </div>
+
+  <div class="card">
+    <div class="info">
+      <div class="label">Nama Pembeli</div>
+      <div class="value" id="nama">-</div>
+    </div>
+    <div class="info">
+      <div class="label">No. WhatsApp</div>
+      <div class="value" id="nohp">-</div>
+    </div>
+    <div class="info">
+      <div class="label">Waktu Transfer</div>
+      <div class="value" id="waktu">-</div>
+    </div>
+
+    <div style="margin:30px 0;">
+      <div class="label" style="text-align:center; margin-bottom:15px; color:#00ffff; font-size:1.2em;">Detail Pesanan</div>
+      <table class="detail-table" id="detailTable">
+        <thead><tr><th>Produk</th><th>Size</th><th>Qty</th><th>Subtotal</th></tr></thead>
+        <tbody id="detailBody">
+          <tr><td colspan="4" style="text-align:center; color:#888; padding:30px;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info">
+      <div class="label">TOTAL BAYAR</div>
+      <div class="value" id="total">-</div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-wa" id="btnWA">Chat WhatsApp</button>
+      <button class="btn btn-confirm" onclick="konfirmasiSelesai()">Sudah Dibayar</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="konfirmasi-pembayaran.html">Kembali ke Daftar Pesanan</a> • 
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+</div>
+
+<script>
+function getUrlParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function loadOrder() {
+  const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  const id = getUrlParam('id');
+  const order = orders.find(o => o.id == id);
+
+  if (!order) {
+    document.body.innerHTML = '<div style="text-align:center; padding:100px; color:#ff4444; font-size:2em;">Order tidak ditemukan!</div>';
+    return;
+  }
+
+  document.getElementById('nama').textContent = order.nama;
+  document.getElementById('nohp').textContent = '+62' + order.nohp;
+  document.getElementById('waktu').textContent = order.waktu;
+  document.getElementById('total').textContent = order.total;
+
+  const tbody = document.getElementById('detailBody');
+  tbody.innerHTML = '';
+
+  if (order.detail) {
+    order.detail.split('\n').filter(l => l.trim()).forEach(line => {
+      const parts = line.split(' x');
+      const nameSize = parts[0].split(' (Size ');
+      const name = nameSize[0];
+      const size = nameSize[1] ? nameSize[1].replace(')', '') : '-';
+      const qty = parts[1]?.split(' = ')[0] || '1';
+      const subtotal = parts[1]?.split(' = ')[1] || 'Rp 0';
+
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${name}</td><td>${size}</td><td>${qty}</td><td>${subtotal}</td>`;
+      tbody.appendChild(row);
+    });
+  } else {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#888;">Tidak ada detail</td></tr>';
+  }
+
+  // Tombol WhatsApp
+  document.getElementById('btnWA').onclick = function() {
+    const msg = encodeURIComponent(`Halo ${order.nama}!\nTerima kasih sudah transfer *${order.total}*\nOrder kamu sedang kami proses ya!\n\nFadel Store`);
+    window.open(`https://wa.me/${order.nohp}?text=${msg}`, '_blank');
+  };
+}
+
+function konfirmasiSelesai() {
+  if (confirm('Pembayaran sudah diterima?\nUang akan masuk ke Dashboard Penjualan.')) {
+    const id = getUrlParam('id');
+    let pending = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+    let confirmed = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+
+    const idx = pending.findIndex(o => o.id == id);
+    if (idx > -1) {
+      confirmed.push(pending[idx]);
+      pending.splice(idx, 1);
+      localStorage.setItem('admin_orders', JSON.stringify(pending));
+      localStorage.setItem('admin_confirmed_orders', JSON.stringify(confirmed));
+
+      alert('Pembayaran berhasil dikonfirmasi!\nUang sudah masuk ke Dashboard.');
+      window.location.href = 'konfirmasi-pembayaran.html';
+    }
+  }
+}
+
+window.onload = loadOrder;
+</script>
+
+</body>
+</html>

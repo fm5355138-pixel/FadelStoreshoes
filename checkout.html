@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout Pesanan - Fadel Store</title>
+  <style>
+    body { background: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .checkout-form { background: #1a1a1a; padding: 40px; border-radius: 12px; border: 3px solid #00ffff; width: 400px; box-shadow: 0 0 30px rgba(0,255,255,0.2); }
+    h2 { color: #00ffff; margin-bottom: 20px; text-align: center; }
+    label { display: block; margin-top: 15px; margin-bottom: 5px; color: #ccc; font-weight: bold; }
+    input[type="text"], input[type="number"], textarea { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 8px 0; 
+      border: 1px solid #333; 
+      background: #1c1c1e; 
+      color: #fff; 
+      border-radius: 6px; 
+      box-sizing: border-box; 
+    }
+    textarea { resize: vertical; height: 100px; }
+    input:focus, textarea:focus { outline: none; border-color: #00ffff; }
+    button { 
+      width: 100%; 
+      padding: 14px; 
+      background: #ff4444; 
+      color: #fff; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      margin-top: 25px; 
+      transition: background 0.3s;
+    }
+    button:hover { background: #cc3333; }
+    .note { margin-top: 20px; text-align: center; color: #888; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<div class="checkout-form">
+  <h2>FORMULIR PEMESANAN</h2>
+  
+  <form id="orderForm">
+    <label for="nama">Nama Lengkap</label>
+    <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
+
+    <label for="nohp">Nomor WhatsApp (62...)</label>
+    <input type="number" id="nohp" placeholder="Contoh: 81234567890" required>
+    
+    <label for="detail">Detail Produk Pesanan</label>
+    <textarea id="detail" placeholder="Contoh:&#10;- Sepatu Adidas (Size 42) x 1 = Rp 3.199.000&#10;- Topi Puma x 1 = Rp 450.000" required></textarea>
+    
+    <label for="total">Total Pembayaran</label>
+    <input type="text" id="total" placeholder="Contoh: Rp 3.649.000" required>
+
+    <button type="submit">Konfirmasi Pesanan & Transfer</button>
+  </form>
+
+  <p class="note">Setelah konfirmasi, silakan tunggu balasan dari Admin kami.</p>
+</div>
+
+<script>
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const nama = document.getElementById('nama').value;
+  const nohp = document.getElementById('nohp').value;
+  const detail = document.getElementById('detail').value;
+  const total = document.getElementById('total').value;
+
+  if (!nama || !nohp || !detail || !total) {
+    alert('Mohon lengkapi semua data pesanan!');
+    return;
+  }
+  
+  // Format nohp: hilangkan angka '0' di depan jika ada
+  const formattedNohp = nohp.startsWith('0') ? nohp.substring(1) : nohp;
+
+  // 1. Ambil data pesanan yang sudah ada
+  let orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+  
+  // 2. Tentukan ID baru
+  const newId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1001;
+  
+  // 3. Buat objek pesanan baru
+  const newOrder = {
+    id: newId,
+    nama: nama,
+    nohp: formattedNohp,
+    total: total,
+    detail: detail,
+    waktu: new Date().toLocaleString('id-ID'),
+    status: 'Menunggu Pembayaran' // Status awal
+  };
+
+  // 4. Tambahkan ke daftar & simpan
+  orders.push(newOrder);
+  localStorage.setItem('admin_orders', JSON.stringify(orders));
+  
+  // 5. Beri notifikasi ke customer
+  alert('✅ Pesanan berhasil dikonfirmasi! Silakan lakukan pembayaran dan tunggu konfirmasi Admin. ID Pesanan Anda: #' + newId);
+  
+  // 6. Reset form
+  this.reset();
+  
+  // Optional: Redirect ke halaman lain
+  // window.location.href = 'terimakasih.html'; 
+});
+
+</script>
+
+</body>
+</html>

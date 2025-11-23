@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - Fadel Store</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .header { background: #1a1a1a; padding: 20px 30px; border-bottom: 3px solid #00ffff; display: flex; justify-content: space-between; align-items: center; }
+    .logo { color: #00ffff; font-size: 1.8em; font-weight: bold; }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .logout { color: #ff4444; text-decoration: none; font-weight: bold; }
+    .sidebar { width: 260px; background: #1a1a1a; position: fixed; top: 0; left: 0; bottom: 0; padding-top: 100px; border-right: 1px solid #333; }
+    .sidebar a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #222; transition: all 0.3s; }
+    .sidebar a:hover, .sidebar a.active { background: #00ffff; color: #000; font-weight: bold; }
+    .main { margin-left: 260px; padding: 30px; }
+    h1 { font-size: 2.2em; color: #00ffff; margin-bottom: 10px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin: 30px 0; }
+    .stat-card { background: #1c1c1e; padding: 25px; border-radius: 12px; border: 1px solid #333; text-align: center; box-shadow: 0 4px 15px rgba(0,255,255,0.1); }
+    .stat-card h3 { color: #888; font-size: 0.9em; margin-bottom: 10px; text-transform: uppercase; }
+    .stat-card .value { font-size: 2.2em; font-weight: bold; color: #2ecc71; }
+    .stat-card .change { font-size: 0.9em; color: #888; margin-top: 8px; }
+    .row { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 30px; }
+    .chart-box, .widget { background: #1c1c1e; padding: 25px; border-radius: 12px; border: 1px solid #333; }
+    .widget h3 { color: #00ffff; margin-bottom: 15px; font-size: 1.2em; }
+    .order-item { padding: 12px 0; border-bottom: 1px dashed #444; font-size: 0.95em; background: rgba(255,255,255,0.02); border-radius: 8px; margin: 8px 0; padding: 12px; }
+    .order-item.new-order { background: rgba(0,255,255,0.1); border-left: 4px solid #00ffff; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .status { padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: #ff9800; color: #000; }
+    @media (max-width: 992px) { .sidebar { position: relative; width: 100%; padding-top: 0; height: auto; } .main { margin-left: 0; margin-top: 20px; } .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="konfirmasi-pembayaran.html">Konfirmasi Pembayaran</a>
+    <a href="customer.html">Pelanggan</a>
+    <a href="produk.html">Produk</a>
+    <a href="../index.html">Lihat Toko</a>
+    <a href="#" id="logout-btn" style="margin-top: 50px; color: #ff4444;">Logout</a>
+  </div>
+  <div class="header">
+    <div class="logo">Fadel Store Admin</div>
+    <div class="user-info">
+      <span>Selamat datang, Admin</span>
+      <a href="#" id="logout-top" class="logout">Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <h1>Dashboard Overview</h1>
+    <p style="color:#888;">Data penjualan hanya masuk setelah admin konfirmasi pembayaran</p>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Total Penjualan</h3>
+        <div class="value" id="totalSalesValue">Rp 0</div>
+        <div class="change">Dari pesanan yang sudah dikonfirmasi</div>
+      </div>
+      <div class="stat-card">
+        <h3>Pesanan Baru</h3>
+        <div class="value" id="newOrdersCount">0</div>
+        <div class="change">Menunggu konfirmasi pembayaran</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Pelanggan</h3>
+        <div class="value" id="totalCustomersCount">0</div>
+        <div class="change">Unik dari pesanan dikonfirmasi</div>
+      </div>
+      <div class="stat-card">
+        <h3>Produk Terjual</h3>
+        <div class="value" id="productsSoldCount">0</div>
+        <div class="change">Dari pesanan yang sudah dikonfirmasi</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="chart-box">
+        <h3 style="color:#00ffff; margin-bottom:20px;">Grafik Penjualan 7 Hari Terakhir</h3>
+        <canvas id="salesChart" height="300"></canvas>
+      </div>
+      <div class="widget">
+        <h3>Pesanan Terbaru (Real-Time)</h3>
+        <div id="latestOrdersWidget">
+          <div style="text-align:center; color:#888; padding:20px;">Menunggu pesanan masuk...</div>
+        </div>
+        <div style="text-align:center; margin-top:20px;">
+          <a href="konfirmasi-pembayaran.html" style="background:#00ffff; color:#000; padding:12px 25px; border-radius:12px; text-decoration:none; font-weight:bold; display:inline-block;">
+            Lihat Semua Pesanan →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatRupiah(number) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    function getData() {
+      const pending = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+      const confirmed = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+      return { pending, confirmed };
+    }
+
+    function calculateTotalSales() {
+      const { confirmed } = getData();
+      let total = 0;
+      confirmed.forEach(o => {
+        const val = parseInt(o.total.replace(/[^\d]/g, ''));
+        if (!isNaN(val)) total += val;
+      });
+      return formatRupiah(total);
+    }
+
+    function calculateProductsSold() {
+      const { confirmed } = getData();
+      let total = 0;
+      confirmed.forEach(o => {
+        if (o.detail) {
+          o.detail.split('\n').forEach(line => {
+            const match = line.match(/x\s*(\d+)/i);
+            if (match) total += parseInt(match[1]);
+          });
+        }
+      });
+      return total;
+    }
+
+    function calculateUniqueCustomers() {
+      const { confirmed } = getData();
+      const unique = new Set();
+      confirmed.forEach(o => o.nama && unique.add(o.nama.trim().toLowerCase()));
+      return unique.size;
+    }
+
+    function updateDashboard() {
+      const { pending } = getData();
+
+      document.getElementById('totalSalesValue').textContent = calculateTotalSales();
+      document.getElementById('newOrdersCount').textContent = pending.length;
+      document.getElementById('totalCustomersCount').textContent = calculateUniqueCustomers();
+      document.getElementById('productsSoldCount').textContent = calculateProductsSold();
+
+      const widget = document.getElementById('latestOrdersWidget');
+      if (pending.length === 0) {
+        widget.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Tidak ada pesanan baru</div>';
+        return;
+      }
+
+      const latest = pending.sort((a,b) => b.id - a.id).slice(0, 4);
+      widget.innerHTML = latest.map((o, i) => {
+        let productName = 'Produk';
+        if (o.detail) {
+          productName = o.detail.split('\n')[0].split(' (Size ')[0];
+        }
+        return `
+          <div class="order-item ${i === 0 ? 'new-order' : ''}">
+            <strong>${o.nama}</strong><br>
+            <small style="color:#00ffff;">${productName}</small><br>
+            <span class="status">Menunggu</span> • ${o.total}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setupChart() {
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'],
+          datasets: [{
+            label: 'Penjualan',
+            data: [5200000,7800000,6500000,9100000,12400000,15800000,12400000],
+            borderColor: '#00ffff',
+            backgroundColor: 'rgba(0,255,255,0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    setInterval(updateDashboard, 3000);
+
+    window.onload = function() {
+      if (!localStorage.getItem('admin_logged_in')) {
+        window.location.href = 'index_Admin.html';
+        return;
+      }
+      updateDashboard();
+      setupChart();
+
+      document.querySelectorAll('#logout-btn, #logout-top').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          localStorage.removeItem('admin_logged_in');
+          window.location.href = 'index_Admin.html';
+        });
+      });
+    };
+  </script>
+</body>
+</html>

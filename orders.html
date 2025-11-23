@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Semua Pesanan - Fadel Store Admin</title>
+  <style>
+    /* Same styles as dashboard.html */
+    body { background: #0d0d0d; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .header { background: #1a1a1a; padding: 20px 30px; border-bottom: 3px solid #00ffff; display: flex; justify-content: space-between; align-items: center; }
+    .logo { color: #00ffff; font-size: 1.8em; font-weight: bold; }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .logout { color: #ff4444; text-decoration: none; font-weight: bold; }
+    .sidebar { width: 260px; background: #1a1a1a; position: fixed; top: 0; left: 0; bottom: 0; padding-top: 100px; border-right: 1px solid #333; }
+    .sidebar a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #222; transition: all 0.3s; }
+    .sidebar a:hover, .sidebar a.active { background: #00ffff; color: #000; font-weight: bold; }
+    .main { margin-left: 260px; padding: 30px; }
+    h1 { font-size: 2.2em; color: #00ffff; margin-bottom: 10px; }
+    .tab-header { margin-bottom: 20px; border-bottom: 2px solid #333; }
+    .tab-btn { background: none; border: none; padding: 10px 15px; cursor: pointer; color: #888; font-weight: bold; font-size: 1.1em; transition: color 0.3s; }
+    .tab-btn.active { color: #00ffff; border-bottom: 3px solid #00ffff; margin-bottom: -2px; }
+    .badge-count { background: #ff4444; color: #fff; padding: 2px 8px; border-radius: 50%; font-size: 0.7em; margin-left: 5px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+    th { background: #1c1c1e; color: #00ffff; }
+    .status { padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; }
+    .status.new { background: #ff4444; color: #fff; }
+    .status.paid { background: #2ecc71; color: #000; }
+    .status.shipped { background: #00ffff; color: #000; }
+    .status.pending { background: #ff9800; color: #000; }
+    button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px; font-weight: bold; }
+    .btn-confirm { background: #2ecc71; color: #000; }
+    .btn-ship { background: #00ffff; color: #000; }
+    .btn-detail { background: #333; color: #fff; }
+
+    @media (max-width: 992px) { .sidebar { position: relative; width: 100%; padding-top: 0; height: auto; } .main { margin-left: 0; margin-top: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="orders.html" class="active">Pesanan</a>
+    <a href="customer.html">Pelanggan</a>
+    <a href="produk.html">Produk</a>
+    <a href="/web sepatu 2/index.html">Lihat Toko</a>
+    <a href="#" id="logout-btn" style="margin-top: 50px; color: #ff4444;">Logout</a>
+  </div>
+  <div class="header">
+    <div class="logo">Fadel Store Admin</div>
+    <div class="user-info">
+      <span>Selamat datang, Admin</span>
+      <a href="#" id="logout-top" class="logout">Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <h1>Kelola Pesanan</h1>
+
+    <div class="tab-header">
+      <button class="tab-btn active" data-tab="new-orders">Pesanan Baru <span class="badge-count" id="newOrderCount">0</span></button>
+      <button class="tab-btn" data-tab="all-orders">Semua Pesanan</button>
+    </div>
+
+    <div id="new-orders-content" class="tab-content">
+      <h2>Daftar Pembayaran Masuk (Belum Dikonfirmasi)</h2>
+      <table id="newOrdersTable">
+        <thead>
+          <tr>
+            <th>ID Pesanan</th>
+            <th>Nama Pembeli</th>
+            <th>Total Transfer</th>
+            <th>Waktu</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="newOrderTableBody">
+          <tr><td colspan="5" style="text-align:center; color:#888;">Tidak ada pesanan baru.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="all-orders-content" class="tab-content" style="display:none;">
+      <h2>Riwayat Pesanan (Sudah Dikonfirmasi)</h2>
+      <table id="allOrdersTable">
+        <thead>
+          <tr>
+            <th>ID Pesanan</th>
+            <th>Produk Utama</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="allOrderTableBody">
+          <tr><td colspan="5" style="text-align:center; color:#888;">Belum ada pesanan yang dikonfirmasi.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Data Management Functions ---
+
+    function loadData() {
+        loadNewOrders();
+        loadAllOrders();
+    }
+
+    function loadNewOrders() {
+      const orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+      const tbody = document.getElementById('newOrderTableBody');
+      const countBadge = document.getElementById('newOrderCount');
+
+      countBadge.textContent = orders.length;
+
+      if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Tidak ada pesanan baru.</td></tr>';
+        return;
+      }
+
+      orders.sort((a, b) => b.id - a.id); // Terbaru di atas
+
+      tbody.innerHTML = orders.map(order => {
+        return `
+          <tr>
+            <td>#${order.id.toString().slice(-6)}</td>
+            <td>${order.nama}</td>
+            <td style="color:#2ecc71; font-weight:bold;">${order.total}</td>
+            <td>${order.waktu}</td>
+            <td>
+              <button class="btn-confirm" onclick="konfirmasiSelesai(${order.id})">Konfirmasi & Proses</button>
+              <button class="btn-detail" onclick="viewOrderDetail(${order.id}, 'new')">Detail</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function loadAllOrders() {
+      const confirmedOrders = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+      const tbody = document.getElementById('allOrderTableBody');
+
+      if (confirmedOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada riwayat pesanan dikonfirmasi.</td></tr>';
+        return;
+      }
+      
+      confirmedOrders.sort((a, b) => b.id - a.id);
+
+      tbody.innerHTML = confirmedOrders.map(order => {
+        const statusClass = order.status === 'Sudah Dibayar' ? 'paid' : order.status === 'Dikirim' ? 'shipped' : 'pending';
+        const statusText = order.status;
+        const firstProduct = order.detail.split('\n')[0].split(' x')[0];
+
+        return `
+          <tr>
+            <td>#${order.id.toString().slice(-6)}</td>
+            <td>${firstProduct}</td>
+            <td style="color:#2ecc71; font-weight:bold;">${order.total}</td>
+            <td><span class="status ${statusClass}">${statusText}</span></td>
+            <td>
+              <button class="btn-ship" onclick="updateStatus(${order.id}, 'Dikirim')">Kirim</button>
+              <button class="btn-detail" onclick="viewOrderDetail(${order.id}, 'confirmed')">Detail</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- Action Functions ---
+
+    function konfirmasiSelesai(id) {
+      if (confirm(`Apakah Anda yakin ingin mengkonfirmasi pesanan #${id.toString().slice(-6)} dan memprosesnya?`)) {
+        let orders = JSON.parse(localStorage.getItem('admin_orders') || '[]');
+        let confirmedOrders = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+        
+        const index = orders.findIndex(o => o.id === id);
+        if (index > -1) {
+          const confirmedOrder = orders.splice(index, 1)[0];
+          
+          confirmedOrder.status = 'Sudah Dibayar'; 
+          confirmedOrder.confirmation_time = new Date().toLocaleString('id-ID');
+          
+          confirmedOrders.push(confirmedOrder);
+          
+          localStorage.setItem('admin_orders', JSON.stringify(orders)); 
+          localStorage.setItem('admin_confirmed_orders', JSON.stringify(confirmedOrders));
+          
+          alert(`Pesanan #${id.toString().slice(-6)} berhasil dikonfirmasi dan dipindahkan ke Riwayat Pesanan.`);
+          loadData(); // Muat ulang kedua tabel setelah perubahan
+        }
+      }
+    }
+
+    function updateStatus(id, newStatus) {
+        let confirmedOrders = JSON.parse(localStorage.getItem('admin_confirmed_orders') || '[]');
+        const orderIndex = confirmedOrders.findIndex(o => o.id == id);
+        
+        if (orderIndex > -1) {
+            confirmedOrders[orderIndex].status = newStatus;
+            localStorage.setItem('admin_confirmed_orders', JSON.stringify(confirmedOrders));
+            alert(`Status pesanan #${id.toString().slice(-6)} diupdate ke ${newStatus}!`);
+            loadAllOrders();
+        }
+    }
+
+    function viewOrderDetail(id, type) {
+        // Karena kita tidak memiliki halaman view-order.html yang memuat dari confirmed_orders,
+        // kita tampilkan detailnya di alert saja
+        const dataKey = type === 'new' ? 'admin_orders' : 'admin_confirmed_orders';
+        const orders = JSON.parse(localStorage.getItem(dataKey) || '[]');
+        const order = orders.find(o => o.id == id);
+
+        if (order) {
+            alert(
+                `Detail Pesanan #${id.toString().slice(-6)}\n\n` +
+                `Nama: ${order.nama}\n` +
+                `WhatsApp: +62${order.nohp}\n` +
+                `Total: ${order.total}\n` +
+                `Waktu Transfer: ${order.waktu}\n\n` +
+                `DETAIL:\n${order.detail}`
+            );
+        } else {
+            alert('Detail pesanan tidak ditemukan!');
+        }
+    }
+
+    // --- Tab Switching Logic ---
+
+    function setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                
+                // Remove active from all buttons and content
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                
+                // Set active on clicked button and display content
+                button.classList.add('active');
+                document.getElementById(tabId + '-content').style.display = 'block';
+            });
+        });
+    }
+
+    // --- Initial Load & Security ---
+
+    window.onload = function() {
+        if (!localStorage.getItem('admin_logged_in')) {
+            window.location.href = 'index.html';
+            return;
+        }
+        setupTabs();
+        loadData();
+    };
+
+    // Logout script
+    document.querySelectorAll('#logout-btn, #logout-top').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('admin_logged_in');
+        window.location.href = 'index.html';
+      });
+    });
+  </script>
+</body>
+</html>
